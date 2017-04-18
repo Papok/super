@@ -22,40 +22,43 @@ var server = http.createServer(router);
 var io = socketio.listen(server);
 
 router.use(express.static(path.resolve(__dirname, 'client')));
-var messages = [];
-var sockets = [];
+var list = [
+  {
+    messages: [],
+    sockets: []
+  }];
+
 
 function remoteLog(logString) {
   broadcast('remoteLog', logString);
 }
 
 io.on('connection', function (socket) {
-    messages.forEach(function (data) {
+    list[0].messages.forEach(function (data) {
       
       socket.emit('message', data);
     });
 
-    sockets.push(socket);
+    list[0].sockets.push(socket);
 
     socket.on('disconnect', function () {
-      sockets.splice(sockets.indexOf(socket), 1);
+      list[0].sockets.splice(list[0].sockets.indexOf(socket), 1);
       updateRoster();
     });
     
     socket.on('saveFile', function() {
       remoteLog('saveFile evente recived');
-      fs.writeFileSync('test.json', JSON.stringify(messages), 'utf8');
+      fs.writeFileSync('test.json', JSON.stringify(list[0].messages), 'utf8');
     });
     
     socket.on('loadFile', function() {
       remoteLog('loadFile event recived');
-//    messages = require('./test.json');
       fs.readFile('test.json', 'utf8', function(err, data) {
         if (err) {
           remoteLog(err);
         }
-      messages = JSON.parse(data);
-      broadcast('loadFile', messages);      
+      list[0].messages = JSON.parse(data);
+      broadcast('loadFile', list[0].messages);      
       });
  
     });
@@ -66,12 +69,11 @@ io.on('connection', function (socket) {
     
     socket.on('deleteData', function() {
       remoteLog('deleteData event recived');
-      messages = [];
+      list[0].messages = [];
       broadcast('deleteData');
     });
 
     socket.on('message', function (msg) {
-//    remoteLog("message object recived: " + msg);
       var text = String(msg || '');
 
       if (!text)
@@ -83,9 +85,8 @@ io.on('connection', function (socket) {
           text: text,
           checked: false
         };
-//      remoteLog('broadcasting: ' + JSON.stringify(data));
         broadcast('message', data);
-        messages.push(data);
+        list[0].messages.push(data);
       });
     });
 
@@ -97,10 +98,10 @@ io.on('connection', function (socket) {
     
     socket.on('changeCheckBox', function (idx) {
 //    remoteLog("got changeCheckBox from: " + idx + " that was: " + messages[idx].checked);
-      messages[idx].checked = !messages[idx].checked;
+      list[0].messages[idx].checked = !list[0].messages[idx].checked;
       var data = {
         idx: idx,
-        checked: messages[idx].checked
+        checked: list[0].messages[idx].checked
       }
 //    remoteLog('broadcasting: ' + JSON.stringify(data));
       broadcast('changeCheckBox', data);
@@ -110,7 +111,7 @@ io.on('connection', function (socket) {
 
 function updateRoster() {
   async.map(
-    sockets,
+    list[0].sockets,
     function (socket, callback) {
       socket.get('name', callback);
     },
@@ -121,12 +122,14 @@ function updateRoster() {
 }
 
 function broadcast(event, data) {
-  sockets.forEach(function (socket) {
+  list[0].sockets.forEach(function (socket) {
     socket.emit(event, data);
   });
 }
 
 remoteLog('Starting...');
+
+
 
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
