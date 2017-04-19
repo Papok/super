@@ -1,149 +1,86 @@
 <!doctype html>
 <html lang="en" ng-app>
-  <head>
-    <title>Chat Example</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
-    <script>
-      function ChatController($scope) {
-        var socket = io.connect();
 
-        $scope.messages = [];
-        $scope.roster = [];
-        $scope.name = '';
-        $scope.text = '';
-        $scope.list = '';
-        
-        socket.on('remoteLog', function (logString) {
-         console.log('Server says: ' + logString);
-        });
+<head>
+  <title>Chat Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+  <style>
+    body {
+      padding-top: 60px;
+    }
+  </style>
 
-        socket.on('connect', function () {
-          $scope.setName();
-        });
+</head>
 
-        socket.on('message', function (msg) {
-//        console.log('Message object recived: ' + JSON.stringify(msg));
-          $scope.messages.push(msg);
-          $scope.$apply();
-        });
-
-        socket.on('roster', function (names) {
-          $scope.roster = names;
-          $scope.$apply();
-        });
-        
-        socket.on('changeCheckBox', function(data) {
-//        console.log('Checked status recived:' + data.checked + " for " + data.idx)
-          $scope.messages[data.idx].checked = data.checked;
-          $scope.$apply();
-        });
-        
-        socket.on('deleteData', function() {
-          $scope.messages = [];
-          $scope.$apply();
-          console.log('Data deleted.');
-        });
-        
-        socket.on('loadFile', function(messages) {
-          $scope.messages = messages;
-          $scope.$apply();
-          console.log('Data loaded');
-        });
-        
-
-        $scope.send = function send() {
-//      console.log('Sending message:', $scope.text);
-          socket.emit('message', $scope.text);
-          $scope.text = '';
-        };
-        $scope.changeCheckBox = function changeCheckBox(idx) {
-//        console.log('Sending message:'+ idx + " | current status: " + $scope.messages[idx].checked);
-          socket.emit('changeCheckBox', idx);
-        };
-
-        $scope.setName = function setName() {
-          socket.emit('identify', $scope.name);
-        };
-        
-        $scope.sendEvent = function sendEvent(eventType) {
-          socket.emit(eventType);
-          console.log(eventType + " event sent");
-        };
-      }
-    </script>
-  </head>
-  <body>
-    <div class="container" ng-controller="ChatController">
-      <div class="navbar navbar-fixed-top navbar-inverse">
-        <div class="navbar-inner">
-          <div class="pull-right">
-            <a href="https://c9.io" class="brand">Cloud9 IDE</a>
-          </div>
-        </div>
-      </div>
-      <div class="page-header">
-        <h1>Chat Example</h1>
-      </div>
-      <div class="row">
-        <div class="span3">
-          <form ng-submit="setList()">
-            <div class="span2">
-              <input type="text" class="span2 input-block-level" ng-model="list" placeholder="List Name">
-              <input type="submit" class="span2 btn btn-primary" value="Set List" ng-disabled="!list">
-            </div>
-          </form>
-          <ul class="nav nav-list well">
-            <li class="nav-header">Local Users</li>
-            <li ng-repeat="user in roster" ng-bind="user">
-            </li>
-          </ul>
-          <input type="button" value="Save File" ng-click="sendEvent('saveFile')"/>
-          <input type="button" value="Load File" ng-click="sendEvent('loadFile')"/>
-          <input type="button" value="Delete File" ng-click="sendEvent('deleteFile')"/>
-          <input type="button" value="Delete Data" ng-click="sendEvent('deleteData')"/>
-
-        </div>
-        <div class="span9">
-          <div class="row controls">
-            <form ng-submit="send()">
-              <div class="span2"><input type="text" class="input-block-level" ng-model="name" ng-change="setName()" placeholder="Your Name"></div>
-              <div class="input-append span7">
-                <input type="text" class="span6" ng-model="text" placeholder="Message">
-                <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
-              </div>
-            </form>
-          </div>
-         <table class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th class="span2">Name</th>
-                <th class="span7">Text</th>
-                <th class="span1">Comprado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="msg in messages">
-                <td class="span2" ng-bind="msg.name"></td>
-                <td class="span7" ng-bind="msg.text"></td>
-                <td class="span1">
-                  <input type="checkbox" name=" ttt " ng-checked="msg.checked" ng-click="changeCheckBox($index)"/>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+<body>
+  <div class="container" ng-controller="ChatController">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+      <div class="navbar-inner">
+        <div class="pull-right">
+          <a href="https://c9.io" class="brand">Cloud9 IDE</a>
         </div>
       </div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/angular.min.js"></script>
-  </body>
+    <div class="page-header">
+      <h1>Chat Example</h1>
+    </div>
+    <div class="row">
+      <div class="span3">
+        <form ng-submit="setList()">
+          <div class="span2">
+            <input type="text" class="span2 input-block-level" ng-model="list" placeholder="List Name">
+            <input type="submit" class="span2 btn btn-primary" value="Set List" ng-disabled="!list">
+          </div>
+        </form>
+        <ul class="nav nav-list well">
+          <li class="nav-header">Local Users</li>
+          <li ng-repeat="user in roster" ng-bind="user">
+          </li>
+        </ul>
+        <input type="button" value="Save File" ng-click="sendEvent('saveFile')" />
+        <input type="button" value="Load File" ng-click="sendEvent('loadFile')" />
+        <input type="button" value="Delete File" ng-click="sendEvent('deleteFile')" />
+        <input type="button" value="Delete Data" ng-click="sendEvent('deleteData')" />
+
+      </div>
+      <div class="span9">
+        <div class="row controls">
+          <form ng-submit="send()">
+            <div class="span2"><input type="text" class="input-block-level" ng-model="name" ng-change="setName()" placeholder="Your Name"></div>
+            <div class="input-append span7">
+              <input type="text" class="span6" ng-model="text" placeholder="Message">
+              <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
+            </div>
+          </form>
+        </div>
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th class="span2">Name</th>
+              <th class="span7">Text</th>
+              <th class="span1">Comprado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="msg in messages">
+              <td class="span2" ng-bind="msg.name"></td>
+              <td class="span7" ng-bind="msg.text"></td>
+              <td class="span1">
+                <input type="checkbox" name=" ttt " ng-checked="msg.checked" ng-click="changeCheckBox($index)" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/angular.min.js"></script>
+  <script src="/js/chatcontroller.js"></script>
+</body>
+
 </html>
